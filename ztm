@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+#################################################################################################
+#################################################################################################
+##  ZTM - command line interface for accessing timetimes in Warsaw, Poland. 
+##  
+##  Author: Bartosz Chmielewski
+#################################################################################################
+#################################################################################################
+import json
+import os
+import argparse
+import requests
+from rich import print_json
+
+
+ZTM_API = os.getenv('ZTM_API')
+baseurl = "https://api.um.warszawa.pl/"
+
+def getdata(url, urlparams):
+    print("Collecing data from", baseurl)
+    try:
+        r = requests.get(url=url, params=urlparams)
+    except requests.exceptions.RequestException as e:  # This is the correct syntax
+        print("Connection failed. Reason: ")
+        raise SystemExit(e)
+    if r.status_code == 200:   
+        print("Got a response with a valid status code:", r.status_code)
+        print("")
+    else:
+        print("Got a response with unexpected response code:", r.status_code, ". Please try again.")
+        quit()
+    return r.json()
+
+parser = argparse.ArgumentParser(description="ZTM Commandline Interface")
+parser.add_argument('action', choices=['getstopid', 'getlines', 'getschedule', 'getgpstram', 'getgpsbus' ], help="Wybierz jedną ze wspieranych akcji.")
+parser.add_argument('-p', nargs="?", help="Nazwa zespołu przystankowego. Przykładowo Jana Kazimierza.",)
+parser.add_argument('-i', nargs="?", help="ID zespołu przystankowego. Np: 5205.",)
+parser.add_argument('-s', nargs="?", help="Numer słupka przystankowego w ramach zespołu przystankowego. Przykładowo 01.",)
+parser.add_argument('-l', nargs="?", help="Linia. Przykładowo 255.",)
+parser.add_argument('-b', nargs="?", help="Brygada. Przykładowo 01.",)
+args = parser.parse_args()
+
+
+if args.action == 'getstopid':
+    if args.p:
+        urlparams = { 'apikey': ZTM_API, 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.p }
+        url = baseurl + "api/action/dbtimetable_get" 
+        r = getdata(url, urlparams)
+        print_json(json.dumps(r), indent=3)
+    else:
+        print("Podaj proszę nazwę przystanku z użyciem parametru -p.")
+
+elif args.action == 'getlines':
+    if ( args.i and args.s ):
+        urlparams = { 'apikey': ZTM_API, 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': args.i, 'busstopNr': args.s }
+        url = baseurl + "api/action/dbtimetable_get" 
+        r = getdata(url, urlparams)
+        for i in r['result']:
+            print("Linia:", i['values'][0]['value'])
+    else:
+        print("Podaj proszę parametry -i oraz -s.")
+
+elif args.action == 'getschedule':
+    if ( args.i and args.s and args.l ):
+        urlparams = { 'apikey': ZTM_API, 'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238', 'busstopId': args.i, 'busstopNr': args.s, 'line': args.l }
+        url = baseurl + "api/action/dbtimetable_get" 
+        r = getdata(url, urlparams)
+        print("{0:<10} {1:<35} {2:<10}".format("Godzina", "Kierunek" , "Brygada"))
+        for i in r['result']:
+            print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
+    else:
+        print("Podaj proszę parametry -i, -s oraz -l")
+
+elif args.action == 'getgpstram' or args.action == 'getgpsbus':
+    if args.action == 'getgpsbus':  type = '1'
+    else:   type = '2'
+    
+    if ( args.l ):
+        if ( args.b ):
+            urlparams = { 'apikey': ZTM_API, 'resource_id': 'f2e5503e927d-4ad3-9500-4ab9e55deb59', 'type': type, 'line': args.l, 'brigade': args.b }
+        else:
+            urlparams = { 'apikey': ZTM_API, 'resource_id': 'f2e5503e927d-4ad3-9500-4ab9e55deb59', 'type': type, 'line': args.l }
+        
+        url = baseurl + "api/action/busestrams_get/" 
+        r = getdata(url, urlparams)
+        print("{0:<22} {1:<8} {2:<8} {3:<15} {4:<15} {5:<15} {6:<30}".format("Czas odczytu", "Linia", "Brygada", "Numer Boczny", "DługośćGPS", "SzerokośćGPS", "Link Google"))
+        for i in r['result']:
+            googlelink = "http://maps.google.com/maps?q=loc:" + str(i['Lat']) + "," + str(i['Lon'])
+            print("{0:<22} {1:<8} {2:<8} {3:<15} {4:<15} {5:<15} {6:<30}".format(i['Time'], i['Lines'], i['Brigade'], i['VehicleNumber'], i['Lon'], i['Lat'], googlelink))
+    else:
+        print("Podaj proszę parametry -l i opcjonalnie -b.")
+
+
+
+
+
