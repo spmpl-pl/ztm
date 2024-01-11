@@ -12,7 +12,6 @@ import argparse
 import requests
 from rich import print_json
 
-
 ZTM_API = os.getenv('ZTM_API')
 baseurl = "https://api.um.warszawa.pl/"
 
@@ -46,10 +45,11 @@ parser.add_argument('-l', nargs="?", help="Line. For example: 255.",)
 parser.add_argument('-b', nargs="?", help="Brigade. For example: 01.",)
 args = parser.parse_args()
 
+urlparams = { 'apikey': ZTM_API }
 
 if args.action == 'getstopid':
     if args.n:
-        urlparams = { 'apikey': ZTM_API, 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
+        urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
         url = baseurl + "api/action/dbtimetable_get" 
         r = getdata(url, urlparams)
         #print_json(json.dumps(r), indent=3)
@@ -60,7 +60,7 @@ if args.action == 'getstopid':
 
 elif args.action == 'getlines':
     if ( args.i and args.s ):
-        urlparams = { 'apikey': ZTM_API, 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': args.i, 'busstopNr': args.s }
+        urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': args.i, 'busstopNr': args.s }
         url = baseurl + "api/action/dbtimetable_get" 
         r = getdata(url, urlparams)
         for i in r['result']:
@@ -70,7 +70,7 @@ elif args.action == 'getlines':
 
 elif args.action == 'getschedule':
     if ( args.i and args.s and args.l ):
-        urlparams = { 'apikey': ZTM_API, 'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238', 'busstopId': args.i, 'busstopNr': args.s, 'line': args.l }
+        urlparams |= { 'busstopId': args.i, 'busstopNr': args.s, 'line': args.l }
         url = baseurl + "api/action/dbtimetable_get" 
         r = getdata(url, urlparams)
         print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
@@ -81,14 +81,10 @@ elif args.action == 'getschedule':
 
 elif args.action == 'getroute':
     if ( args.l ):
-        urlparams = { 'apikey': ZTM_API }
         url = baseurl + "api/action/public_transport_routes" 
         r = getdata(url, urlparams)
         r_line = r['result'][args.l]
         print_json(json.dumps(r_line), indent=3)
-        #print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
-        #for i in r['result']:
-        #    print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
     else:
         print("Please provide Line with -l parameter. Example: ztm getline -l 255")
 
@@ -97,11 +93,9 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
     else:   type = '2'
     
     if ( args.l ):
-        if ( args.b ):
-            urlparams = { 'apikey': ZTM_API, 'resource_id': 'f2e5503e927d-4ad3-9500-4ab9e55deb59', 'type': type, 'line': args.l, 'brigade': args.b }
-        else:
-            urlparams = { 'apikey': ZTM_API, 'resource_id': 'f2e5503e927d-4ad3-9500-4ab9e55deb59', 'type': type, 'line': args.l }
-        
+        urlparams |= {  'resource_id': 'f2e5503e927d-4ad3-9500-4ab9e55deb59', 'type': type, 'line': args.l }
+        if ( args.b ):  urlparams |= { 'brigade': args.b }
+   
         url = baseurl + "api/action/busestrams_get" 
         r = getdata(url, urlparams)
         print("{0:<22} {1:<8} {2:<10} {3:<12} {4:<12} {5:<12} {6:<30}".format("Last update", "Line", "Brigade", "Vehicle ID", "GPS Lat.", "GPS Long.", "Map link"))
@@ -110,8 +104,3 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
             print("{0:<22} {1:<8} {2:<10} {3:<12} {4:<12} {5:<12} {6:<30}".format(i['Time'], i['Lines'], i['Brigade'], i['VehicleNumber'], i['Lat'], i['Lon'], googlelink))
     else:
         print("Please provide Line with -l and optionally brigade with -b parameters. Example: ztm", args.action, "-l 7")
-
-
-
-
-
