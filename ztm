@@ -83,10 +83,24 @@ elif args.action == 'getroute':
     if ( args.l ):
         url = baseurl + "api/action/public_transport_routes" 
         r = getdata(url, urlparams)
-        r_line = r['result'][args.l]
-        print_json(json.dumps(r_line), indent=3)
+        try:
+            r_line = r['result'][args.l]
+        except KeyError:
+            print("No such line")
+            quit()
+        for i in r_line:
+            noofstops = len(r_line[i])  
+            print("==== Direction:", i, "Number of Stops:", noofstops)
+            print("")
+            print("{0:<5} {1:<12} {2:<10} {3:<15} {4:<15}".format("No", "Stop Group", "Stop ID", "Distance", "Street ID"))
+            n=1
+            for j in r_line[i]:
+                nstr=str(n)
+                print("{0:<5} {1:<12} {2:<10} {3:<15} {4:<15}".format(nstr,r_line[i][nstr]['nr_zespolu'],r_line[i][nstr]['nr_przystanku'],r_line[i][nstr]['odleglosc'],r_line[i][nstr]['ulica_id']))
+                n += 1
+            print("")
     else:
-        print("Please provide Line with -l parameter. Example: ztm getline -l 255")
+        print("Please provide Line with -l parameter. Example: ztm getroute -l 255")
 
 elif args.action == 'getgpstram' or args.action == 'getgpsbus':
     if args.action == 'getgpsbus':  type = '1'
@@ -104,3 +118,7 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
             print("{0:<22} {1:<8} {2:<10} {3:<12} {4:<12} {5:<12} {6:<30}".format(i['Time'], i['Lines'], i['Brigade'], i['VehicleNumber'], i['Lat'], i['Lon'], googlelink))
     else:
         print("Please provide Line with -l and optionally brigade with -b parameters. Example: ztm", args.action, "-l 7")
+
+
+## wget "https://api.um.warszawa.pl/api/action/dbstore_get/?id=ab75c33d-3a26-4342-b36a-6e5fef0a3ac3&apikey=ZTM_API" - przystanki
+## wget https://api.um.warszawa.pl/api/action/public_transport_dictionary/?apikey=ZTM_API - słownik (ulice)
