@@ -38,7 +38,7 @@ def getdata(url, urlparams):
     return r.json()
 
 parser = argparse.ArgumentParser(description="ZTM Commandline Interface")
-parser.add_argument('action', choices=['getstopid', 'getlines', 'getschedule', 'getgpstram', 'getgpsbus' ], help="Choose one of supported options.")
+parser.add_argument('action', choices=['getstopid', 'getlines', 'getschedule', 'getroute', 'getgpstram', 'getgpsbus' ], help="Choose one of supported options.")
 parser.add_argument('-n', nargs="?", help="Name of the Stops Group Name. For example: \"Jana Kazimierza\".",)
 parser.add_argument('-i', nargs="?", help="Stop Group ID. For example: 5205.",)
 parser.add_argument('-s', nargs="?", help="Stop ID. For example: 01.",)
@@ -78,6 +78,19 @@ elif args.action == 'getschedule':
             print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
     else:
         print("Please provide Stop Group ID with -i, Stop ID with -s and Line with -l parameters. Example: ztm getschedule -i 5205 -s 01 -l 255")
+
+elif args.action == 'getroute':
+    if ( args.l ):
+        urlparams = { 'apikey': ZTM_API }
+        url = baseurl + "api/action/public_transport_routes" 
+        r = getdata(url, urlparams)
+        r_line = r['result'][args.l]
+        print_json(json.dumps(r_line), indent=3)
+        #print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
+        #for i in r['result']:
+        #    print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
+    else:
+        print("Please provide Line with -l parameter. Example: ztm getline -l 255")
 
 elif args.action == 'getgpstram' or args.action == 'getgpsbus':
     if args.action == 'getgpsbus':  type = '1'
