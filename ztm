@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #################################################################################################
 #################################################################################################
-##  ZTM - command line interface for accessing timetimes in Warsaw, Poland. 
+##  ZTM - command line interface for accessing timetimes nad other information related to public
+##  transportation system in Warsaw, Poland. 
 ##  
 ##  Author: Bartosz Chmielewski
 #################################################################################################
@@ -10,7 +11,11 @@ import json
 import os
 import argparse
 import requests
-from rich import print_json
+import datetime
+from datetime import date
+
+
+#from rich import print_json
 
 ZTM_API = os.getenv('ZTM_API')
 baseurl = "https://api.um.warszawa.pl/"
@@ -39,13 +44,24 @@ def getapidata(url, urlparams):
     return r.json()
 
 def getdata(filepath, url, urlparams):
-    # 1) check file validity
-    # 2) get new data if updated
-    # 3) save data to the file
-    # 4) open the file nad return data
+
+    if( os.path.exists(filepath) and datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).date() == date.today()):
+        print(" --> The database file", filepath, "is up to date...")
+    else:
+        print(" --> The database file", filepath, "is not up to date or not existing...")        
+        data = getapidata(url, urlparams)
+        with open(filepath, "w") as file:
+            json.dump(data, file)
     
-    f = open(filepath)
+
+    try:
+        f = open(filepath)
+    except IOError:
+        print(" --> Failed to open a database file:", filepath)
+        quit()
+    
     r = json.load(f)
+
     return r
 
 
@@ -113,7 +129,6 @@ elif args.action == 'getroute':
         urlparams |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
         db_busstops = getdata(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
 
-
         try:
             db_routes_line = db_routes['result'][args.l]
         except KeyError:
@@ -151,6 +166,7 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
    
         url = baseurl + "api/action/busestrams_get" 
         r = getapidata(url, urlparams)
+
         print("{0:<22} {1:<8} {2:<10} {3:<12} {4:<12} {5:<12} {6:<30}".format("Last update", "Line", "Brigade", "Vehicle ID", "GPS Lat.", "GPS Long.", "Map link"))
         for i in r['result']:
             googlelink = "https://maps.google.com/maps?q=loc:" + str(i['Lat']) + "," + str(i['Lon'])
