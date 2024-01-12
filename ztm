@@ -12,7 +12,7 @@ import os
 import argparse
 import requests
 import datetime
-from datetime import date
+
 
 ZTM_API = os.getenv('ZTM_API')
 baseurl = "https://api.um.warszawa.pl/"
@@ -49,9 +49,9 @@ def getdata(filepath, url, urlparams):
         print(' --> Creating directory:', homedir + '/.ztm' )
         os.makedirs( homedir + '/.ztm' )
 
-    if( os.path.exists(filepath) and datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).date() == date.today()):
+    if( os.path.exists(filepath) and datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).date() == datetime.date.today()):
         print(" --> The database file", filepath, "is up to date...")
-        
+
     else:
         print(" --> The database file", filepath, "is not up to date or not existing...")        
         data = getapidata(url, urlparams)
@@ -107,6 +107,7 @@ if args.action == 'getstopid':
     else:
         print("Please provide a Stop Group Name with -g parameter. Example: ztm getstopid -g \"Jana Kazimierza\"")
 
+
 elif args.action == 'getlines':
 
     if ( args.i and args.s ):
@@ -119,6 +120,7 @@ elif args.action == 'getlines':
     
     else:
         print("Please provide Stop Group ID with -i and Stop ID with -s parameters. Example: ztm getlines -i 5205 -s 01")
+
 
 elif args.action == 'getschedule':
 
@@ -133,6 +135,7 @@ elif args.action == 'getschedule':
  
     else:
         print("Please provide Stop Group ID with -i, Stop ID with -s and Line with -l parameters. Example: ztm getschedule -i 5205 -s 01 -l 255")
+
 
 elif args.action == 'getroute':
 
@@ -176,6 +179,7 @@ elif args.action == 'getroute':
             print("")
     else:
         print("Please provide Line with -l parameter. Example: ztm getroute -l 255")
+
 
 elif args.action == 'getgpstram' or args.action == 'getgpsbus':
 
