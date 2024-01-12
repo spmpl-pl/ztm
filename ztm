@@ -83,13 +83,13 @@ def findstopnamebyid(id):
 
 
 
-parser = argparse.ArgumentParser(description="ZTM Commandline Interface")
+parser = argparse.ArgumentParser(description="ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle locations and more from api.um.warszawa.pl.", epilog="Written by Bartosz Chmielewski")
 parser.add_argument('action', choices=['getstopid', 'getlines', 'getschedule', 'getroute', 'getgpstram', 'getgpsbus' ], help="Choose one of supported options.")
-parser.add_argument('-n', nargs="?", help="Name of the Stops Group Name. For example: \"Jana Kazimierza\".",)
-parser.add_argument('-i', nargs="?", help="Stop Group ID. For example: 5205.",)
-parser.add_argument('-s', nargs="?", help="Stop ID. For example: 01.",)
-parser.add_argument('-l', nargs="?", help="Line. For example: 255.",)
-parser.add_argument('-b', nargs="?", help="Brigade. For example: 01.",)
+parser.add_argument('-n', nargs="?", metavar="StopGroupName", help="Name of the Stops Group Name. For example: \"Jana Kazimierza\".",)
+parser.add_argument('-i', nargs="?", metavar="StopGroupID", help="Stop Group ID. For example: 5205.",)
+parser.add_argument('-s', nargs="?", metavar="StopID", help="Stop ID. For example: 01.",)
+parser.add_argument('-l', nargs="?", metavar="Line", help="Line. For example: 255.",)
+parser.add_argument('-b', nargs="?", metavar="BrigadeID", help="Brigade. For example: 01.",)
 args = parser.parse_args()
 
 urlparams = { 'apikey': ZTM_API }

@@ -1,5 +1,5 @@
 # ZTM Command-Line interface
-ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vechicle locations and more from api.um.warszawa.pl. The project is writting in python as a one file program. 
+ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle locations and more from api.um.warszawa.pl. The project is written in python as a one file program. 
 
 > [!IMPORTANT]
 > Before using the script, please set the ZTM_API variable with command: `export ZTM_API=(apikey)`  
