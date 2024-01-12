@@ -9,13 +9,14 @@ Usage:
 `ztm action [parameters]`
 
 ## List of actions:
-
- - `getstopid``   - Looks up the Stop Group ID based on the Stop Group name.  
- - `getlines``    - Gets lines depaturing from the Stop. Required parameters: -i and -s.
- - `getschedule`` - Gets a schedule of particular Line from the Stop. Required parameters: -i, -s and -l.
- - `getroute``    - Gets a route for a particular line. Prints all variants. Required parameters: -l.
- - `getgpstram``  - Gets current GPS locations for all trams on the particular line. Required parameters: -l. Optional parameters: -b.
- - `getgpsbus``   - Gets current GPS locations for all buses on the particular line. Required parameters: -l. Optional parameters: -b.
+| Action | Description |
+| --- | --- |
+| `getstopid` | Looks up the Stop Group ID based on the Stop Group name. |
+| `getlines` | Gets lines depaturing from the Stop. Required parameters: -i and -s. |
+| `getschedule` | Gets a schedule of particular Line from the Stop. Required parameters: -i, -s and -l. |
+| `getroute` | Gets a route for a particular line. Prints all variants. Required parameters: -l.|
+| `getgpstram` | Gets current GPS locations for all trams on the particular line. Required parameters: -l. Optional parameters: -b. |
+| `getgpsbus` | Gets current GPS locations for all buses on the particular line. Required parameters: -l. Optional parameters: -b. |
 
 ## List of parameters:  
 | Option | Description |
