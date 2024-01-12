@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #################################################################################################
 #################################################################################################
-##  ZTM - command line interface for accessing timetimes nad other information related to public
+##  ZTM - command line interface for accessing timetables and other information related to public
 ##  transportation system in Warsaw, Poland. 
 ##  
 ##  Author: Bartosz Chmielewski
@@ -126,11 +126,12 @@ elif args.action == 'getschedule':
 
     if ( args.i and args.s and args.l ):
 
-        urlparams |= { 'busstopId': args.i, 'busstopNr': args.s, 'line': args.l }
+        urlparams |= { 'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238', 'busstopId': args.i, 'busstopNr': args.s, 'line': args.l }
         url = baseurl + "api/action/dbtimetable_get" 
         r = getapidata(url, urlparams)
         print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
         for i in r['result']:
+            #print("wartość", i)
             print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
  
     else:
