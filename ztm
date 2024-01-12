@@ -14,11 +14,13 @@ from rich import print_json
 
 ZTM_API = os.getenv('ZTM_API')
 baseurl = "https://api.um.warszawa.pl/"
+homedir = os.getenv("HOME")
+
 
 if (not ZTM_API):
     print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
 
-def getdata(url, urlparams):
+def getapidata(url, urlparams):
     ## Sending request to API and handling error codes if needed. 
     print(" --> Trying to connect to:", url)
     try:
@@ -36,6 +38,30 @@ def getdata(url, urlparams):
         quit()
     return r.json()
 
+def getdata(filepath, url, urlparams):
+    # 1) check file validity
+    # 2) get new data if updated
+    # 3) save data to the file
+    # 4) open the file nad return data
+    
+    f = open(filepath)
+    r = json.load(f)
+    return r
+
+
+def findstopnamebyid(id):
+    validrecord = False
+    for a in db_busstops['result']:
+        if validrecord: break
+        for b in a['values']:
+            if ( b['key'] == 'zespol' and b['value'] == StopNameID):
+                validrecord = True
+                        
+        if (validrecord):
+            for c in a['values']:
+                if c['key'] == 'nazwa_zespolu':
+                    return c['value']
+
 parser = argparse.ArgumentParser(description="ZTM Commandline Interface")
 parser.add_argument('action', choices=['getstopid', 'getlines', 'getschedule', 'getroute', 'getgpstram', 'getgpsbus' ], help="Choose one of supported options.")
 parser.add_argument('-n', nargs="?", help="Name of the Stops Group Name. For example: \"Jana Kazimierza\".",)
@@ -51,8 +77,7 @@ if args.action == 'getstopid':
     if args.n:
         urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
         url = baseurl + "api/action/dbtimetable_get" 
-        r = getdata(url, urlparams)
-        #print_json(json.dumps(r), indent=3)
+        r = getapidata(url, urlparams)
         for i in r['result']:
             print("Stop Group Name:", i['values'][1]['value'], "Stop Group ID:", i['values'][0]['value'])
     else:
@@ -62,7 +87,7 @@ elif args.action == 'getlines':
     if ( args.i and args.s ):
         urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': args.i, 'busstopNr': args.s }
         url = baseurl + "api/action/dbtimetable_get" 
-        r = getdata(url, urlparams)
+        r = getapidata(url, urlparams)
         for i in r['result']:
             print("Line:", i['values'][0]['value'])
     else:
@@ -72,7 +97,7 @@ elif args.action == 'getschedule':
     if ( args.i and args.s and args.l ):
         urlparams |= { 'busstopId': args.i, 'busstopNr': args.s, 'line': args.l }
         url = baseurl + "api/action/dbtimetable_get" 
-        r = getdata(url, urlparams)
+        r = getapidata(url, urlparams)
         print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
         for i in r['result']:
             print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
@@ -82,21 +107,35 @@ elif args.action == 'getschedule':
 elif args.action == 'getroute':
     if ( args.l ):
         url = baseurl + "api/action/public_transport_routes" 
-        r = getdata(url, urlparams)
+
+        db_routes = getdata(homedir +"/.ztm/ztm_routes.json", baseurl + "api/action/public_transport_routes", urlparams)
+        db_dictionary = getdata(homedir +"/.ztm/ztm_dictionary.json", baseurl + "api/action/public_transport_dictionary", urlparams)
+        urlparams |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
+        db_busstops = getdata(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
+
+
         try:
-            r_line = r['result'][args.l]
+            db_routes_line = db_routes['result'][args.l]
         except KeyError:
-            print("No such line")
+            print("No such line in the database")
             quit()
-        for i in r_line:
-            noofstops = len(r_line[i])  
+        for i in db_routes_line:
+            noofstops = len(db_routes_line[i])  
             print("==== Direction:", i, "Number of Stops:", noofstops)
             print("")
-            print("{0:<5} {1:<12} {2:<10} {3:<15} {4:<15}".format("No", "Stop Group", "Stop ID", "Distance", "Street ID"))
+            print("{0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format("No", "Stop Name", "Stop ID", "Stop Type", "Distance", "Street"))
+            
             n=1
-            for j in r_line[i]:
+            for j in db_routes_line[i]:
                 nstr=str(n)
-                print("{0:<5} {1:<12} {2:<10} {3:<15} {4:<15}".format(nstr,r_line[i][nstr]['nr_zespolu'],r_line[i][nstr]['nr_przystanku'],r_line[i][nstr]['odleglosc'],r_line[i][nstr]['ulica_id']))
+
+                StopNameID = db_routes_line[i][nstr]['nr_zespolu']
+                StopName = findstopnamebyid(StopNameID)
+                StopID=db_routes_line[i][nstr]['nr_przystanku']
+                StopType=db_dictionary['result']['typy_przystankow'][db_routes_line[i][nstr]['typ']]
+                Distance=db_routes_line[i][nstr]['odleglosc']
+                StreetName=db_dictionary['result']['ulice'][db_routes_line[i][nstr]['ulica_id']]
+                print("{0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format(nstr, StopName, StopID, StopType, Distance, StreetName))
                 n += 1
             print("")
     else:
@@ -111,7 +150,7 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
         if ( args.b ):  urlparams |= { 'brigade': args.b }
    
         url = baseurl + "api/action/busestrams_get" 
-        r = getdata(url, urlparams)
+        r = getapidata(url, urlparams)
         print("{0:<22} {1:<8} {2:<10} {3:<12} {4:<12} {5:<12} {6:<30}".format("Last update", "Line", "Brigade", "Vehicle ID", "GPS Lat.", "GPS Long.", "Map link"))
         for i in r['result']:
             googlelink = "https://maps.google.com/maps?q=loc:" + str(i['Lat']) + "," + str(i['Lon'])
@@ -120,5 +159,7 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
         print("Please provide Line with -l and optionally brigade with -b parameters. Example: ztm", args.action, "-l 7")
 
 
-## wget "https://api.um.warszawa.pl/api/action/dbstore_get/?id=ab75c33d-3a26-4342-b36a-6e5fef0a3ac3&apikey=ZTM_API" - przystanki
-## wget https://api.um.warszawa.pl/api/action/public_transport_dictionary/?apikey=ZTM_API - słownik (ulice)
+## wget -O ztm_busstops.json "https://api.um.warszawa.pl/api/action/dbstore_get/?id=ab75c33d-3a26-4342-b36a-6e5fef0a3ac3&apikey=$ZTM_API" 
+## wget -O ztm_dictionary.json "https://api.um.warszawa.pl/api/action/public_transport_dictionary/?apikey=$ZTM_API" 
+## wget -O ztm_routes.json "https://api.um.warszawa.pl/api/action/public_transport_routes/?apikey=$ZTM_API" 
+        
