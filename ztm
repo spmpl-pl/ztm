@@ -45,6 +45,11 @@ def getapidata(url, urlparams):
 
 def getdata(filepath, url, urlparams):
 
+    if ( not os.path.exists( homedir + '/.ztm') ):
+        print(' --> Creating directory:', homedir + '/.ztm' )
+        os.makedirs( homedir + '/.ztm' )
+
+
     if( os.path.exists(filepath) and datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).date() == date.today()):
         print(" --> The database file", filepath, "is up to date...")
     else:
@@ -136,6 +141,7 @@ elif args.action == 'getroute':
             quit()
         for i in db_routes_line:
             noofstops = len(db_routes_line[i])  
+            print("")
             print("==== Direction:", i, "Number of Stops:", noofstops)
             print("")
             print("{0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format("No", "Stop Name", "Stop ID", "Stop Type", "Distance", "Street"))
@@ -174,8 +180,4 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
     else:
         print("Please provide Line with -l and optionally brigade with -b parameters. Example: ztm", args.action, "-l 7")
 
-
-## wget -O ztm_busstops.json "https://api.um.warszawa.pl/api/action/dbstore_get/?id=ab75c33d-3a26-4342-b36a-6e5fef0a3ac3&apikey=$ZTM_API" 
-## wget -O ztm_dictionary.json "https://api.um.warszawa.pl/api/action/public_transport_dictionary/?apikey=$ZTM_API" 
-## wget -O ztm_routes.json "https://api.um.warszawa.pl/api/action/public_transport_routes/?apikey=$ZTM_API" 
         
