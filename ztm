@@ -66,21 +66,7 @@ def getdata(filepath, url, urlparams):
     r = json.load(f)
     return r
 
-
-def findstopnamebyid(StopGroupID):
-    validrecord = False
-    for a in db_busstops['result']:
-        if validrecord: break
-        for b in a['values']:
-            if ( b['key'] == 'zespol' and b['value'] == StopGroupID):
-                validrecord = True
-                        
-        if (validrecord):
-            for c in a['values']:
-                if c['key'] == 'nazwa_zespolu':
-                    return c['value']
-
-def findstopidsbygroupid(StopGroupID):
+def findstopdetails(StopGroupID):
     returnlist = []
     for a in db_busstops['result']:
         validrecord = False
@@ -91,7 +77,18 @@ def findstopidsbygroupid(StopGroupID):
         if (validrecord):
             for c in a['values']:
                 if c['key'] == 'slupek':
-                    returnlist.append(c['value'])
+                    line = { 'StopID': (c['value']) }
+                elif c['key'] == 'kierunek':
+                    line |= { 'Direction': (c['value']) }
+                elif c['key'] == 'szer_geo':
+                    line |= { 'GPSLat': (c['value']) }
+                elif c['key'] == 'dlug_geo':
+                    line |= { 'GPSLon': (c['value']) }
+                elif c['key'] == 'nazwa_zespolu':
+                    line |= { 'StopGroupName': (c['value']) }                    
+                elif c['key'] == 'id_ulicy':
+                    line |= { 'StreetID': (c['value']) }     
+            returnlist.append(line)
     return returnlist
 
 
@@ -116,9 +113,14 @@ if args.action == 'getstopid':
         url = baseurl + "api/action/dbtimetable_get" 
         r = getapidata(url, urlparams)
         for i in r['result']:
-            print("Stop Group Name:", i['values'][1]['value'], "Stop Group ID:", i['values'][0]['value'])
-            ids = findstopidsbygroupid(i['values'][0]['value'])
-            print("Available Stop IDs:", *ids)
+            print("==== Stop Group Name:", str(i['values'][1]['value']) + ". Stop Group ID:", i['values'][0]['value'])
+            ids = findstopdetails(i['values'][0]['value'])
+            print("== Available Stop IDs:")
+            print("")
+            print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format("StopID", "Direction", "GPS Lat.", "GPS Long.", "Map Link" ))
+            for j in ids:
+                googlelink = "https://maps.google.com/maps?q=loc:" + str(j['GPSLat']) + "," + str(j['GPSLon'])
+                print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format(j['StopID'], j['Direction'], j['GPSLat'], j['GPSLon'], googlelink ))
             print("")
     else:
         print("Please provide a Stop Group Name with -n parameter. Example: ztm getstopid -n \"Jana Kazimierza\"")
@@ -187,7 +189,8 @@ elif args.action == 'getroute':
                 nstr=str(n)
 
                 StopNameID = db_routes_line[i][nstr]['nr_zespolu']
-                StopName = findstopnamebyid(StopNameID)
+                StopNames = findstopdetails(StopNameID)
+                StopName = StopNames[0]['StopGroupName']
                 StopID=db_routes_line[i][nstr]['nr_przystanku']
                 StopType=db_dictionary['result']['typy_przystankow'][db_routes_line[i][nstr]['typ']]
                 Distance=db_routes_line[i][nstr]['odleglosc']
