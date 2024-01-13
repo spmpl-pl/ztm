@@ -13,13 +13,14 @@ import argparse
 import requests
 import datetime
 
+if os.getenv("ZTM_API") is None:
+    print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
+
+
 
 ZTM_API = os.getenv('ZTM_API')
 baseurl = "https://api.um.warszawa.pl/"
 homedir = os.getenv("HOME")
-
-if (not ZTM_API):
-    print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
 
 
 def getapidata(url, urlparams):

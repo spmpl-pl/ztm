@@ -8,16 +8,7 @@ ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle loc
 ### Usage:
 `ztm action [parameters]`
 
-### Example commands:
-
- - `ztm getstopid -n "Centrum"` - gets valid Stop Group IDs for a give Stop Group Name. 
- - `ztm getlines -i 7013 -s 01` - gets lines for a given Stop Group ID and Stop ID. 
- - `ztm getschedule -i 7013 -s 01 -l 525` - gets schedule for a given Stop Group ID, Stop ID and Line.
- - `ztm getroute -l 255` - gets all routes for a given Line.
- - `ztm getgpstram -l 1` - show all trams for a given line with GPS locations. 
- - `ztm getgpsbus -l 523` - show all buses for a given line with a GPS locations. 
-
-## List of actions:
+### List of actions:
 | Action | Description |
 | --- | --- |
 | `getstopid` | Looks up the Stop Group ID based on the Stop Group name. |
@@ -27,7 +18,7 @@ ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle loc
 | `getgpstram` | Gets current GPS locations for all trams on the particular line. Required parameters: -l. Optional parameters: -b. |
 | `getgpsbus` | Gets current GPS locations for all buses on the particular line. Required parameters: -l. Optional parameters: -b. |
 
-## List of parameters:  
+### List of parameters:  
 | Option | Description |
 | --- | --- |
 | `-n` | Name of the Stops Group Name. For example: "Jana Kazimierza". |
@@ -36,3 +27,11 @@ ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle loc
 | `-l` | Line. For example: 255. |
 | `-b` | Brigade. For example: 01. |
 
+### Example commands:
+
+ - `ztm getstopid -n "Centrum"` - gets valid Stop Group IDs for a give Stop Group Name. 
+ - `ztm getlines -i 7013 -s 01` - gets lines for a given Stop Group ID and Stop ID. 
+ - `ztm getschedule -i 7013 -s 01 -l 525` - gets schedule for a given Stop Group ID, Stop ID and Line.
+ - `ztm getroute -l 255` - gets all routes for a given Line.
+ - `ztm getgpstram -l 1` - show all trams for a given line with GPS locations. 
+ - `ztm getgpsbus -l 523` - show all buses for a given line with a GPS locations. 
