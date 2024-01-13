@@ -1,8 +1,9 @@
 # ZTM Command-Line interface
-ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle locations and more from api.um.warszawa.pl. The project is written in python as a one file program. 
+The ZTM is a commandline interface for downloading and presenting API data published by the Public Transport Authority (Zarząd Transportu Miejskiego/ZTM) on Warsaw Public Transport (Warszawski Transport Publiczny/WTP). With the program, you can see timetables, routes, vehicle location and more data available on api.um.warszawa.pl. 
+
 
 > [!IMPORTANT]
-> Before using the script, please set the ZTM_API variable with command: `export ZTM_API=(apikey)`  
+> Before using the program, please set the ZTM_API variable with command: `export ZTM_API=(apikey)`  
 > You can obtain the APIKEY on https://api.um.warszawa.pl/
 
 ### Usage:
@@ -34,4 +35,6 @@ ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle loc
  - `ztm getschedule -i 7013 -s 01 -l 525` - gets schedule for a given Stop Group ID, Stop ID and Line.
  - `ztm getroute -l 255` - gets all routes for a given Line.
  - `ztm getgpstram -l 1` - show all trams for a given line with GPS locations. 
- - `ztm getgpsbus -l 523` - show all buses for a given line with a GPS locations. 
+ - `ztm getgpsbus -l 523` - show all buses for a given line with a GPS locations.
+
+Author: Bartosz Chmielewski 
