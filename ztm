@@ -67,12 +67,12 @@ def getdata(filepath, url, urlparams):
     return r
 
 
-def findstopnamebyid(id):
+def findstopnamebyid(StopGroupID):
     validrecord = False
     for a in db_busstops['result']:
         if validrecord: break
         for b in a['values']:
-            if ( b['key'] == 'zespol' and b['value'] == StopNameID):
+            if ( b['key'] == 'zespol' and b['value'] == StopGroupID):
                 validrecord = True
                         
         if (validrecord):
@@ -80,6 +80,19 @@ def findstopnamebyid(id):
                 if c['key'] == 'nazwa_zespolu':
                     return c['value']
 
+def findstopidsbygroupid(StopGroupID):
+    returnlist = []
+    for a in db_busstops['result']:
+        validrecord = False
+        for b in a['values']:
+            if ( b['key'] == 'zespol' and b['value'] == StopGroupID):
+                validrecord = True
+                        
+        if (validrecord):
+            for c in a['values']:
+                if c['key'] == 'slupek':
+                    returnlist.append(c['value'])
+    return returnlist
 
 
 parser = argparse.ArgumentParser(description="ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle locations and more from api.um.warszawa.pl. You can find more information including examples of use on https://github.com/spmpl-pl/ztm in README file.", epilog="Written by Bartosz Chmielewski")
@@ -95,6 +108,8 @@ urlparams = { 'apikey': ZTM_API }
 
 if args.action == 'getstopid':
 
+    db_busstops = getdata(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
+
     if args.n:
    
         urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
@@ -102,7 +117,9 @@ if args.action == 'getstopid':
         r = getapidata(url, urlparams)
         for i in r['result']:
             print("Stop Group Name:", i['values'][1]['value'], "Stop Group ID:", i['values'][0]['value'])
-
+            ids = findstopidsbygroupid(i['values'][0]['value'])
+            print("Available Stop IDs:", *ids)
+            print("")
     else:
         print("Please provide a Stop Group Name with -n parameter. Example: ztm getstopid -n \"Jana Kazimierza\"")
 
