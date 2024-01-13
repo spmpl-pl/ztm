@@ -83,7 +83,7 @@ def findstopnamebyid(id):
 
 
 
-parser = argparse.ArgumentParser(description="ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle locations and more from api.um.warszawa.pl.", epilog="Written by Bartosz Chmielewski")
+parser = argparse.ArgumentParser(description="ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle locations and more from api.um.warszawa.pl. You can find more information including examples of use on https://github.com/spmpl-pl/ztm in README file.", epilog="Written by Bartosz Chmielewski")
 parser.add_argument('action', choices=['getstopid', 'getlines', 'getschedule', 'getroute', 'getgpstram', 'getgpsbus' ], help="Choose one of supported options.")
 parser.add_argument('-n', nargs="?", metavar="StopGroupName", help="Name of the Stops Group Name. For example: \"Jana Kazimierza\".",)
 parser.add_argument('-i', nargs="?", metavar="StopGroupID", help="Stop Group ID. For example: 5205.",)

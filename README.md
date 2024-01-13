@@ -5,8 +5,17 @@ ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle loc
 > Before using the script, please set the ZTM_API variable with command: `export ZTM_API=(apikey)`  
 > You can obtain the APIKEY on https://api.um.warszawa.pl/
 
-Usage:
+### Usage:
 `ztm action [parameters]`
+
+### Example commands:
+
+ - `ztm getstopid -n "Centrum"` - gets valid Stop Group IDs for a give Stop Group Name. 
+ - `ztm getlines -i 7013 -s 01` - gets lines for a given Stop Group ID and Stop ID. 
+ - `ztm getschedule -i 7013 -s 01 -l 525` - gets schedule for a given Stop Group ID, Stop ID and Line.
+ - `ztm getroute -l 255` - gets all routes for a given Line.
+ - `ztm getgpstram -l 1` - show all trams for a given line with GPS locations. 
+ - `ztm getgpsbus -l 523` - show all buses for a given line with a GPS locations. 
 
 ## List of actions:
 | Action | Description |
