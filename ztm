@@ -104,7 +104,7 @@ if args.action == 'getstopid':
             print("Stop Group Name:", i['values'][1]['value'], "Stop Group ID:", i['values'][0]['value'])
 
     else:
-        print("Please provide a Stop Group Name with -g parameter. Example: ztm getstopid -g \"Jana Kazimierza\"")
+        print("Please provide a Stop Group Name with -n parameter. Example: ztm getstopid -n \"Jana Kazimierza\"")
 
 
 elif args.action == 'getlines':
