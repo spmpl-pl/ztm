@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
-#################################################################################################
-#################################################################################################
-##  ZTM - command line interface for accessing timetables and other information related to public
-##  transportation system in Warsaw, Poland. 
-##  
-##  Author: Bartosz Chmielewski
-#################################################################################################
-#################################################################################################
+#####################################################################################################
+#####################################################################################################
+##  ZTM - command line interface for accessing timetables and other information related to public  ##
+##  transportation system in Warsaw, Poland.                                                       ##
+##                                                                                                 ##
+##  Author: Bartosz Chmielewski                                                                    ##
+#####################################################################################################
+#####################################################################################################
 import json
 import os
 import argparse
 import requests
 import datetime
 
-if os.getenv("ZTM_API") is None:
-    print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
-
-
-
 ZTM_API = os.getenv('ZTM_API')
 baseurl = "https://api.um.warszawa.pl/"
 homedir = os.getenv("HOME")
 
+if ZTM_API is None:
+    print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
+    quit()
 
 def getapidata(url, urlparams):
     ## Sending request to API and handling error codes if needed. 
