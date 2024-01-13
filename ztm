@@ -155,11 +155,13 @@ elif args.action == 'getroute':
             print("No such line in the database")
             quit()
 
+        print("")
+        print("There are", len(db_routes_line), "route variants for the line", str(args.l) + ". Printing all of them.")
         for i in db_routes_line:
 
             noofstops = len(db_routes_line[i])  
             print("")
-            print("==== Direction:", i, "Number of Stops:", noofstops)
+            print("==== Route variant ID:", str(i) + ". Number of Stops:", noofstops)
             print("")
             print("{0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format("No", "Stop Name", "Stop ID", "Stop Type", "Distance", "Street"))
             
