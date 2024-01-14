@@ -108,7 +108,7 @@ def GetStopNameFromID(StopID):
     if len(StopNames) > 0:
         return StopNames[0]['StopGroupName']
     else:
-        print("Incorrect Stop Group ID...")
+        print("No results...")
         quit()
 
 
@@ -198,7 +198,7 @@ elif args.action == 'getlines':
                     except TypeError:
                         print("No such Stop Group ID in the database")
                         quit()    
-                        
+
                     print("Line:", j['values'][0]['value'])
             else:
                 print("No results")
