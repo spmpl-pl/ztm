@@ -179,6 +179,7 @@ elif args.action == 'getlines':
             urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': i['StopGroupID'] , 'busstopNr': args.s }
             url = baseurl + "api/action/dbtimetable_get" 
             r = GetApiData(url, urlparams)
+
             for j in r['result']:
                 print("Line:", j['values'][0]['value'])
     
@@ -192,19 +193,40 @@ elif args.action == 'getlines':
 
 elif args.action == 'getschedule':
 
-    if ( args.i and args.s and args.l ):
+    db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
 
-        urlparams |= { 'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238', 'busstopId': args.i, 'busstopNr': args.s, 'line': args.l }
-        url = baseurl + "api/action/dbtimetable_get" 
-        r = GetApiData(url, urlparams)
-        print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
-        for i in r['result']:
-            #print("wartość", i)
-            print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
+    if ( args.n and args.i ):
+        print("Please provide either -n or -i parameters. You have provided both...")
+        quit()
+
+    if ( ( args.n or args.i ) and args.s and args.l ):
+        
+        if(args.n):
+            StopGroupIDs = GetStopIDFromName(args.n)
+        else:
+            StopGroupIDs = [ { 'StopGroupID': args.i, 'StopGroupName': GetStopNameFromID(args.i) } ]
+
+        for i in StopGroupIDs:    
+            urlparams |= { 'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238', 'busstopId': i['StopGroupID'], 'busstopNr': args.s, 'line': args.l }
+            url = baseurl + "api/action/dbtimetable_get" 
+            r = GetApiData(url, urlparams)
+            print("==== Schedule for line:", args.l + ". Stop Group Name:", i['StopGroupName'] + ". Stop Group ID:", i['StopGroupID'])
+            if (len(r['result']) > 0 ):
+                print("")
+                print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
+
+                for i in r['result']:
+                    print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
+            else:
+                print("==== No results...")
+                print("")
  
     else:
-        print("Please provide Stop Group ID with -i, Stop ID with -s and Line with -l parameters. Example: ztm getschedule -i 5205 -s 01 -l 255")
-
+        print("Please provide Stop Group ID with -i or Stop Group Name with -n and Stop ID with -s and Line with -l parameters. Example: ztm getschedule -i 5205 -s 01 -l 255")
+        print("")
+        print("Examples:")
+        print("  - ztm getschedule -i 5205 -s 01 -l 255")
+        print("  - ztm getschedule -n \"Jana Kazimierza\" -s 01 -l 255")
 
 elif args.action == 'getroute':
 
