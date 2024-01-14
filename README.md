@@ -13,7 +13,7 @@ The ZTM is a commandline interface for downloading and presenting API data publi
 | Action | Description |
 | --- | --- |
 | `getstop` | Looks up the Stop Group details based on the Stop Group name or Stop Group ID. Required parameters: -l or -i. |
-| `getlines` | Gets lines depaturing from the Stop. Required parameters: -i or -n and -s. |
+| `getlines` | Gets lines depaturing from the Stop. Required parameters: -i or -n. Optional parameters: -s. |
 | `getschedule` | Gets a schedule of particular Line from the Stop. Required parameters: -i or -n, -s and -l. |
 | `getroute` | Gets a route for a particular line. Prints all variants. Required parameters: -l.|
 | `getgpstram` | Gets current GPS locations for all trams on the particular line. Required parameters: -l. Optional parameters: -b. |
@@ -34,6 +34,7 @@ The ZTM is a commandline interface for downloading and presenting API data publi
  - `ztm getstop -i 7006` - gets Stop details for a give Stop Group Name. 
  - `ztm getlines -i 7013 -s 01` - gets lines for a given Stop Group ID and Stop ID. 
  - `ztm getlines -n "Metro Politechnika -s 01` - gets lines for a given Stop Group Name and Stop ID. 
+ - `ztm getlines -n "Metro Politechnika` - gets lines for a given Stop Group Name and all Stop IDs. 
  - `ztm getschedule -i 7013 -s 01 -l 525` - gets schedule for a given Stop Group ID, Stop ID and Line.
  - `ztm getschedule -n "Metro Politechnika" -s 08 -l 525` - gets schedule for a given Stop Group Name, Stop ID and Line.
  - `ztm getroute -l 255` - gets all routes for a given Line.
