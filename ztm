@@ -17,6 +17,7 @@ ZTM_API = os.getenv('ZTM_API')
 baseurl = "https://api.um.warszawa.pl/"
 homedir = os.getenv("HOME")
 urlparams = { 'apikey': ZTM_API }
+verbose = False
 
 if ZTM_API is None:
     print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
@@ -27,19 +28,19 @@ def GetApiData(url, urlparams):
     ## Input: URL and URL Parameters
     ## Output: JSON with a response
 
-    print(" --> Trying to connect to:", url)
+    if verbose: print(" --> Trying to connect to:", url)
     
     try:
         r = requests.get(url=url, params=urlparams)
     except requests.exceptions.RequestException as e: 
-        print(" --> Connection to", url, "failed.")
+        iprint(" --> Connection to", url, "failed.")
         quit()
     else:
-        print(" --> Successfully connected to", url )
+        if verbose: print(" --> Successfully connected to", url )
     
     if r.status_code == 200:   
-        print(" --> Connection successful. Got a response with a valid status code:", r.status_code)
-        print("")
+        if verbose: print(" --> Connection successful. Got a response with a valid status code:", r.status_code)
+        if verbose:print("")
     else:
         print(" --> Got a response with unexpected response code:", r.status_code, ". Please try again.")
         quit()
@@ -52,15 +53,15 @@ def GetDatabase(filepath, url, urlparams):
     ## Output: Database as json object.  
 
     if ( not os.path.exists( homedir + '/.ztm') ):
-        print(' --> Creating directory:', homedir + '/.ztm' )
+        if verbose: print(' --> Creating directory:', homedir + '/.ztm' )
         os.makedirs( homedir + '/.ztm' )
 
     if( os.path.exists(filepath) and datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).date() == datetime.date.today()):
-        print(" --> The database file", filepath, "is up to date...")
-        print("")
+        if verbose: print(" --> The database file", filepath, "is up to date...")
+        if verbose: print("")
 
     else:
-        print(" --> The database file", filepath, "is not up to date or not existing...")        
+        if verbose: print(" --> The database file", filepath, "is not up to date or not existing...")        
         data = GetApiData(url, urlparams)
         with open(filepath, "w") as file:
             json.dump(data, file)
@@ -104,7 +105,12 @@ def FindStopDetails(ParameterName, ParameterValue):
 
 def GetStopNameFromID(StopID):
     StopNames = FindStopDetails('zespol', StopID)
-    return StopNames[0]['StopGroupName']
+    if len(StopNames) > 0:
+        return StopNames[0]['StopGroupName']
+    else:
+        print("Incorrect Stop Group ID...")
+        quit()
+
 
 def GetStopIDFromName(StopGroupName):
         returnlist = []
@@ -127,7 +133,7 @@ parser.add_argument('-l', nargs="?", metavar="Line", help="Line. For example: 25
 parser.add_argument('-b', nargs="?", metavar="BrigadeID", help="Brigade. For example: 01.",)
 args = parser.parse_args()
 
-
+print("")
 
 if args.action == 'getstop':
 
@@ -163,6 +169,8 @@ if args.action == 'getstop':
 
 elif args.action == 'getlines':
 
+    db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
+
     if ( args.n and args.i ):
         print("Please provide either -n or -i parameters. You have provided both...")
         quit()
@@ -172,7 +180,7 @@ elif args.action == 'getlines':
         if(args.n):
             StopGroupIDs = GetStopIDFromName(args.n)
         else:
-            StopGroupIDs = [ { 'StopGroupID': args.i } ]
+            StopGroupIDs = [ { 'StopGroupID': args.i, 'StopGroupName': GetStopNameFromID(args.i) } ]
 
         for i in StopGroupIDs:
 
@@ -180,8 +188,20 @@ elif args.action == 'getlines':
             url = baseurl + "api/action/dbtimetable_get" 
             r = GetApiData(url, urlparams)
 
-            for j in r['result']:
-                print("Line:", j['values'][0]['value'])
+            if( len( r['result'] ) > 0 ):
+
+                print("==== Stop Group Name:", i['StopGroupName'] + ". Stop Group ID:", i['StopGroupID'])
+
+                for j in r['result']:
+                    try:
+                        line = j['values'][0]['value']
+                    except TypeError:
+                        print("No such Stop Group ID in the database")
+                        quit()    
+                        
+                    print("Line:", j['values'][0]['value'])
+            else:
+                print("No results")
     
     else:
         print("Please provide Stop Group ID with -i or Stop Group Name with -n and Stop ID with -s parameters.")
