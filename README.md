@@ -27,6 +27,7 @@ The ZTM is a commandline interface for downloading and presenting API data publi
 | `-s` | Stop ID. For example: 01. |
 | `-l` | Line. For example: 255. |
 | `-b` | Brigade. For example: 01. |
+| `-f` | Display full schedule with Directions and Brigades. |
 
 ### Example commands:
 

@@ -135,7 +135,7 @@ parser.add_argument('-i', nargs="?", metavar="StopGroupID", help="Stop Group ID.
 parser.add_argument('-s', nargs="?", metavar="StopID", help="Stop ID. For example: 01.",)
 parser.add_argument('-l', nargs="?", metavar="Line", help="Line. For example: 255.",)
 parser.add_argument('-b', nargs="?", metavar="BrigadeID", help="Brigade. For example: 01.",)
-parser.add_argument('-f', action='store_true', help="Display full schedule with Brigades.",)
+parser.add_argument('-f', action='store_true', help="Display full schedule with Directions and Brigades.",)
 args = parser.parse_args()
 
 print("")
@@ -295,7 +295,7 @@ elif args.action == 'getschedule':
                         hour += 1
                     
                     print("")
-                    print("Hint: You can print a schedule with Brigades with -f parameter...")
+                    print("Hint: You can print a schedule with Directions and Brigades with -f parameter...")
             else:
                 print("==== No results...")
                 print("")
