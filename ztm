@@ -163,25 +163,23 @@ if args.action == 'getstop':
 
 elif args.action == 'getlines':
 
-    if ( args.i and args.s ):
+    if ( args.n and args.i ):
+        print("Please provide either -n or -i parameters. You have provided both...")
+        quit()
 
-        urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': args.i, 'busstopNr': args.s }
-        url = baseurl + "api/action/dbtimetable_get" 
-        r = GetApiData(url, urlparams)
-        for i in r['result']:
-            print("Line:", i['values'][0]['value'])
+    elif ( ( args.n or args.i ) and args.s ):
+        
+        if(args.n):
+            StopGroupIDs = GetStopIDFromName(args.n)
+        else:
+            StopGroupIDs = [ { 'StopGroupID': args.i } ]
 
-    elif ( args.n and args.s ):
+        for i in StopGroupIDs:
 
-        urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
-        url = baseurl + "api/action/dbtimetable_get" 
-        r = GetApiData(url, urlparams)
-        for i in r['result']:
-            StopID=i['values'][0]['value'] 
-            urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': StopID, 'busstopNr': args.s }
+            urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': i['StopGroupID'] , 'busstopNr': args.s }
             url = baseurl + "api/action/dbtimetable_get" 
-            r2 = GetApiData(url, urlparams)
-            for j in r2['result']:
+            r = GetApiData(url, urlparams)
+            for j in r['result']:
                 print("Line:", j['values'][0]['value'])
     
     else:
