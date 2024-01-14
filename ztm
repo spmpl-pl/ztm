@@ -23,6 +23,9 @@ if ZTM_API is None:
 
 def GetApiData(url, urlparams):
     ## Sending request to API and handling error codes if needed. 
+    ## Input: URL and URL Parameters
+    ## Output: JSON with a response
+
     print(" --> Trying to connect to:", url)
     
     try:
@@ -42,7 +45,10 @@ def GetApiData(url, urlparams):
     
     return r.json()
 
-def GetData(filepath, url, urlparams):
+def GetDatabase(filepath, url, urlparams):
+    ## Check if local database exists and is up to date. If not, download it from the API
+    ## Input: DB file path, URL and URL parameters
+    ## Output: Database as json object.  
 
     if ( not os.path.exists( homedir + '/.ztm') ):
         print(' --> Creating directory:', homedir + '/.ztm' )
@@ -50,6 +56,7 @@ def GetData(filepath, url, urlparams):
 
     if( os.path.exists(filepath) and datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).date() == datetime.date.today()):
         print(" --> The database file", filepath, "is up to date...")
+        print("")
 
     else:
         print(" --> The database file", filepath, "is not up to date or not existing...")        
@@ -67,6 +74,9 @@ def GetData(filepath, url, urlparams):
     return r
 
 def FindStopDetails(ParameterName, ParameterValue):
+    ## Finds a Stop Group ID where the ParameterName equals to ParameterValue and return all attributes
+    ## Input: ParameterName, ParameterValue
+    ## Output: List of attributes for all StopIDs. 
     returnlist = []
     for a in db_busstops['result']:
         validrecord = False
@@ -91,9 +101,13 @@ def FindStopDetails(ParameterName, ParameterValue):
             returnlist.append(line)
     return returnlist
 
+def GetStopNameFromID(StopID):
+    StopNames = FindStopDetails('zespol', StopID)
+    return StopNames[0]['StopGroupName']
+
 
 parser = argparse.ArgumentParser(description="ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle locations and more from api.um.warszawa.pl. You can find more information including examples of use on https://github.com/spmpl-pl/ztm in README file.", epilog="Written by Bartosz Chmielewski")
-parser.add_argument('action', choices=['getstopid', 'getlines', 'getschedule', 'getroute', 'getgpstram', 'getgpsbus' ], help="Choose one of supported options.")
+parser.add_argument('action', choices=['getstop', 'getlines', 'getschedule', 'getroute', 'getgpstram', 'getgpsbus' ], help="Choose one of supported options.")
 parser.add_argument('-n', nargs="?", metavar="StopGroupName", help="Name of the Stops Group Name. For example: \"Jana Kazimierza\".",)
 parser.add_argument('-i', nargs="?", metavar="StopGroupID", help="Stop Group ID. For example: 5205.",)
 parser.add_argument('-s', nargs="?", metavar="StopID", help="Stop ID. For example: 01.",)
@@ -103,15 +117,20 @@ args = parser.parse_args()
 
 urlparams = { 'apikey': ZTM_API }
 
-if args.action == 'getstopid':
+if args.action == 'getstop':
 
-    db_busstops = GetData(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
+    db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
 
-    if args.n:
+    if ( args.n and args.i ):
+        print("Please provide either -n or -i parameters. You have provided both...")
+        quit()
+
+    elif args.n:
    
         urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
         url = baseurl + "api/action/dbtimetable_get" 
         r = GetApiData(url, urlparams)
+
         for i in r['result']:
             print("==== Stop Group Name:", str(i['values'][1]['value']) + ". Stop Group ID:", i['values'][0]['value'])
             ids = FindStopDetails('zespol', i['values'][0]['value'])
@@ -122,9 +141,25 @@ if args.action == 'getstopid':
                 googlelink = "https://maps.google.com/maps?q=loc:" + str(j['GPSLat']) + "," + str(j['GPSLon'])
                 print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format(j['StopID'], j['Direction'], j['GPSLat'], j['GPSLon'], googlelink ))
             print("")
-    else:
-        print("Please provide a Stop Group Name with -n parameter. Example: ztm getstopid -n \"Jana Kazimierza\"")
 
+    elif args.i:
+
+        print("==== Stop Group Name:", GetStopNameFromID(args.i) + ". Stop Group ID:", args.i)
+        ids = FindStopDetails('zespol', args.i)
+        print("== Available Stop IDs:")
+        print("")
+        print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format("StopID", "Direction", "GPS Lat.", "GPS Long.", "Map Link" ))
+        for j in ids:
+            googlelink = "https://maps.google.com/maps?q=loc:" + str(j['GPSLat']) + "," + str(j['GPSLon'])
+            print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format(j['StopID'], j['Direction'], j['GPSLat'], j['GPSLon'], googlelink ))
+        print("")
+
+    else:
+        print("Please provide a Stop Group Name with -n parameter or Stop Group ID with -i parameter.")
+        print("")
+        print("Examples:")
+        print("  - ztm getstop -n \"Jana Kazimierza\"")
+        print("  - ztm getstop -i 7006")
 
 elif args.action == 'getlines':
 
@@ -135,9 +170,26 @@ elif args.action == 'getlines':
         r = GetApiData(url, urlparams)
         for i in r['result']:
             print("Line:", i['values'][0]['value'])
+
+    elif ( args.n and args.s ):
+
+        urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
+        url = baseurl + "api/action/dbtimetable_get" 
+        r = GetApiData(url, urlparams)
+        for i in r['result']:
+            StopID=i['values'][0]['value'] 
+            urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': StopID, 'busstopNr': args.s }
+            url = baseurl + "api/action/dbtimetable_get" 
+            r2 = GetApiData(url, urlparams)
+            for j in r2['result']:
+                print("Line:", j['values'][0]['value'])
     
     else:
-        print("Please provide Stop Group ID with -i and Stop ID with -s parameters. Example: ztm getlines -i 5205 -s 01")
+        print("Please provide Stop Group ID with -i or Stop Group Name with -n and Stop ID with -s parameters.")
+        print("")
+        print("Examples:")
+        print("  - ztm getlines -i 5205 -s 01")
+        print("  - ztm getlines -n \"Metro Politechnika\" -s 01")
 
 
 elif args.action == 'getschedule':
@@ -162,10 +214,10 @@ elif args.action == 'getroute':
 
         url = baseurl + "api/action/public_transport_routes" 
 
-        db_routes = GetData(homedir +"/.ztm/ztm_routes.json", baseurl + "api/action/public_transport_routes", urlparams)
-        db_dictionary = GetData(homedir +"/.ztm/ztm_dictionary.json", baseurl + "api/action/public_transport_dictionary", urlparams)
+        db_routes = GetDatabase(homedir +"/.ztm/ztm_routes.json", baseurl + "api/action/public_transport_routes", urlparams)
+        db_dictionary = GetDatabase(homedir +"/.ztm/ztm_dictionary.json", baseurl + "api/action/public_transport_dictionary", urlparams)
         urlparams |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
-        db_busstops = GetData(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
+        db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
 
         try:
             db_routes_line = db_routes['result'][args.l]
@@ -189,8 +241,7 @@ elif args.action == 'getroute':
                 nstr=str(n)
 
                 StopNameID = db_routes_line[i][nstr]['nr_zespolu']
-                StopNames = FindStopDetails('zespol', StopNameID)
-                StopName = StopNames[0]['StopGroupName']
+                StopName = GetStopNameFromID(StopNameID)
                 StopID=db_routes_line[i][nstr]['nr_przystanku']
                 StopType=db_dictionary['result']['typy_przystankow'][db_routes_line[i][nstr]['typ']]
                 Distance=db_routes_line[i][nstr]['odleglosc']
