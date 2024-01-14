@@ -32,15 +32,19 @@ def GetApiData(url, urlparams):
     
     try:
         r = requests.get(url=url, params=urlparams)
+        
     except requests.exceptions.RequestException as e: 
+    
         iprint(" --> Connection to", url, "failed.")
         quit()
+        
     else:
         if verbose: print(" --> Successfully connected to", url )
     
     if r.status_code == 200:   
         if verbose: print(" --> Connection successful. Got a response with a valid status code:", r.status_code)
-        if verbose:print("")
+        if verbose: print("")
+        
     else:
         print(" --> Got a response with unexpected response code:", r.status_code, ". Please try again.")
         quit()
@@ -131,6 +135,7 @@ parser.add_argument('-i', nargs="?", metavar="StopGroupID", help="Stop Group ID.
 parser.add_argument('-s', nargs="?", metavar="StopID", help="Stop ID. For example: 01.",)
 parser.add_argument('-l', nargs="?", metavar="Line", help="Line. For example: 255.",)
 parser.add_argument('-b', nargs="?", metavar="BrigadeID", help="Brigade. For example: 01.",)
+parser.add_argument('-f', action='store_true', help="Display full schedule with Brigades.",)
 args = parser.parse_args()
 
 print("")
@@ -264,11 +269,30 @@ elif args.action == 'getschedule':
             r = GetApiData(url, urlparams)
             print("==== Schedule for line:", args.l + ". Stop Group Name:", i['StopGroupName'] + ". Stop Group ID:", i['StopGroupID'])
             if (len(r['result']) > 0 ):
-                print("")
-                print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
+                if( args.f ):
+                    print("")
+                    print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
 
-                for i in r['result']:
-                    print("{0:<10} {1:<35} {2:<10}".format(i['values'][5]['value'][:5], i['values'][3]['value'], i['values'][2]['value'] ))
+                    for j in r['result']:
+                        hour = j['values'][5]['value'][0:2]
+                        minutes = j['values'][5]['value'][3:5]
+                        print("{0:<10} {1:<35} {2:<10}".format(str(int(hour)%24).zfill(2) + ':' + minutes, j['values'][3]['value'], j['values'][2]['value'] ))
+
+                else:
+                
+                    timetable = ["" for x in range(30)]
+                    for j in r['result']:
+                        hour = j['values'][5]['value'][0:2]
+                        minutes = j['values'][5]['value'][3:5]
+                        timetable[int(hour)] += minutes + " "
+                    hour = 0
+                    for j in timetable:
+                        if ( not j == "" ):
+                            print(str(hour % 24).zfill(2) + ': ', j)
+                        hour += 1
+                    
+                    print("")
+                    print("Hint: You can print a schedule with Brigades with -f parameter...")
             else:
                 print("==== No results...")
                 print("")
@@ -324,6 +348,9 @@ elif args.action == 'getroute':
             print("")
     else:
         print("Please provide Line with -l parameter. Example: ztm getroute -l 255")
+        print("")
+        print("Examples:")
+        print("  - ztm getroute -l 255")
 
 
 elif args.action == 'getgpstram' or args.action == 'getgpsbus':
@@ -346,6 +373,9 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
     
     else:
         
-        print("Please provide Line with -l and optionally brigade with -b parameters. Example: ztm", args.action, "-l 7")
-
+        print("Please provide Line with -l and optionally brigade with -b parameters.")
+        print("")
+        print("Examples:")
+        print("  - ztm getgpstram -l 7")
+        print("  - ztm getgpsbus -l 523")
         
