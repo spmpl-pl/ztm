@@ -21,7 +21,7 @@ if ZTM_API is None:
     print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
     quit()
 
-def getapidata(url, urlparams):
+def GetApiData(url, urlparams):
     ## Sending request to API and handling error codes if needed. 
     print(" --> Trying to connect to:", url)
     
@@ -42,7 +42,7 @@ def getapidata(url, urlparams):
     
     return r.json()
 
-def getdata(filepath, url, urlparams):
+def GetData(filepath, url, urlparams):
 
     if ( not os.path.exists( homedir + '/.ztm') ):
         print(' --> Creating directory:', homedir + '/.ztm' )
@@ -53,7 +53,7 @@ def getdata(filepath, url, urlparams):
 
     else:
         print(" --> The database file", filepath, "is not up to date or not existing...")        
-        data = getapidata(url, urlparams)
+        data = GetApiData(url, urlparams)
         with open(filepath, "w") as file:
             json.dump(data, file)
     
@@ -66,12 +66,12 @@ def getdata(filepath, url, urlparams):
     r = json.load(f)
     return r
 
-def findstopdetails(StopGroupID):
+def FindStopDetails(ParameterName, ParameterValue):
     returnlist = []
     for a in db_busstops['result']:
         validrecord = False
         for b in a['values']:
-            if ( b['key'] == 'zespol' and b['value'] == StopGroupID):
+            if ( b['key'] == ParameterName and b['value'] == ParameterValue):
                 validrecord = True
                         
         if (validrecord):
@@ -105,16 +105,16 @@ urlparams = { 'apikey': ZTM_API }
 
 if args.action == 'getstopid':
 
-    db_busstops = getdata(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
+    db_busstops = GetData(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
 
     if args.n:
    
         urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
         url = baseurl + "api/action/dbtimetable_get" 
-        r = getapidata(url, urlparams)
+        r = GetApiData(url, urlparams)
         for i in r['result']:
             print("==== Stop Group Name:", str(i['values'][1]['value']) + ". Stop Group ID:", i['values'][0]['value'])
-            ids = findstopdetails(i['values'][0]['value'])
+            ids = FindStopDetails('zespol', i['values'][0]['value'])
             print("== Available Stop IDs:")
             print("")
             print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format("StopID", "Direction", "GPS Lat.", "GPS Long.", "Map Link" ))
@@ -132,7 +132,7 @@ elif args.action == 'getlines':
 
         urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': args.i, 'busstopNr': args.s }
         url = baseurl + "api/action/dbtimetable_get" 
-        r = getapidata(url, urlparams)
+        r = GetApiData(url, urlparams)
         for i in r['result']:
             print("Line:", i['values'][0]['value'])
     
@@ -146,7 +146,7 @@ elif args.action == 'getschedule':
 
         urlparams |= { 'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238', 'busstopId': args.i, 'busstopNr': args.s, 'line': args.l }
         url = baseurl + "api/action/dbtimetable_get" 
-        r = getapidata(url, urlparams)
+        r = GetApiData(url, urlparams)
         print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
         for i in r['result']:
             #print("wartość", i)
@@ -162,10 +162,10 @@ elif args.action == 'getroute':
 
         url = baseurl + "api/action/public_transport_routes" 
 
-        db_routes = getdata(homedir +"/.ztm/ztm_routes.json", baseurl + "api/action/public_transport_routes", urlparams)
-        db_dictionary = getdata(homedir +"/.ztm/ztm_dictionary.json", baseurl + "api/action/public_transport_dictionary", urlparams)
+        db_routes = GetData(homedir +"/.ztm/ztm_routes.json", baseurl + "api/action/public_transport_routes", urlparams)
+        db_dictionary = GetData(homedir +"/.ztm/ztm_dictionary.json", baseurl + "api/action/public_transport_dictionary", urlparams)
         urlparams |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
-        db_busstops = getdata(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
+        db_busstops = GetData(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
 
         try:
             db_routes_line = db_routes['result'][args.l]
@@ -189,7 +189,7 @@ elif args.action == 'getroute':
                 nstr=str(n)
 
                 StopNameID = db_routes_line[i][nstr]['nr_zespolu']
-                StopNames = findstopdetails(StopNameID)
+                StopNames = FindStopDetails('zespol', StopNameID)
                 StopName = StopNames[0]['StopGroupName']
                 StopID=db_routes_line[i][nstr]['nr_przystanku']
                 StopType=db_dictionary['result']['typy_przystankow'][db_routes_line[i][nstr]['typ']]
@@ -214,7 +214,7 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
         if ( args.b ):  urlparams |= { 'brigade': args.b }
    
         url = baseurl + "api/action/busestrams_get" 
-        r = getapidata(url, urlparams)
+        r = GetApiData(url, urlparams)
 
         print("{0:<22} {1:<8} {2:<10} {3:<12} {4:<12} {5:<12} {6:<30}".format("Last update", "Line", "Brigade", "Vehicle ID", "GPS Lat.", "GPS Long.", "Map link"))
         for i in r['result']:
