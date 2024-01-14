@@ -157,18 +157,18 @@ if args.action == 'getstop':
             StopGroupIDs = [ { 'StopGroupID': args.i, 'StopGroupName': GetStopNameFromID(args.i) } ]
 
         if( len(StopGroupIDs) == 0 ):
-            print("No Stop Groups for a given Stop Group Name...")
+            print("  No Stop Groups for a given Stop Group Name...")
             quit()
 
         for i in StopGroupIDs:
             print("==== Stop Group Name:", i['StopGroupName'] + ". Stop Group ID:", i['StopGroupID'])
             ids = FindStopDetails('zespol', i['StopGroupID'])
-            print("== Available Stop IDs:")
+            print("  == Available Stop IDs:")
             print("")
-            print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format("StopID", "Direction", "GPS Lat.", "GPS Long.", "Map Link" ))
+            print("  {0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format("StopID", "Direction", "GPS Lat.", "GPS Long.", "Map Link" ))
             for j in ids:
                 googlelink = "https://maps.google.com/maps?q=loc:" + str(j['GPSLat']) + "," + str(j['GPSLon'])
-                print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format(j['StopID'], j['Direction'], j['GPSLat'], j['GPSLon'], googlelink ))
+                print("  {0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format(j['StopID'], j['Direction'], j['GPSLat'], j['GPSLon'], googlelink ))
             print("")
 
     else:
@@ -207,13 +207,16 @@ elif args.action == 'getlines':
             else:
                 ids = FindStopDetails('zespol', i['StopGroupID'])
             
+            print("==== Stop Group Name:", i['StopGroupName'] + ". Stop Group ID:", i['StopGroupID'] )
+            print("")
+            
             for k in ids:
             
                 urlparams |= { 'id': '88cd555f-6f31-43ca-9de4-66c479ad5942', 'busstopId': i['StopGroupID'] , 'busstopNr': k['StopID'] }
                 url = baseurl + "api/action/dbtimetable_get" 
                 r = GetApiData(url, urlparams)
 
-                print("==== Stop Group Name:", i['StopGroupName'] + ". Stop Group ID:", i['StopGroupID'] + ". Stop ID:", k['StopID'])
+                print("  == Stop ID:", k['StopID'] + ". Direction:", k['Direction'])
 
                 if( len( r['result'] ) > 0 ):
 
@@ -224,11 +227,11 @@ elif args.action == 'getlines':
                             print("No such Stop ID in the database")
                             quit()    
 
-                        print("Line:", j['values'][0]['value'])
+                        print("  Line:", j['values'][0]['value'])
                     
                     
                 else:
-                    print("No lines on this Stop.")
+                    print("  No lines on this Stop.")
                 
                 print("")
     
