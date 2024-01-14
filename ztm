@@ -16,6 +16,7 @@ import datetime
 ZTM_API = os.getenv('ZTM_API')
 baseurl = "https://api.um.warszawa.pl/"
 homedir = os.getenv("HOME")
+urlparams = { 'apikey': ZTM_API }
 
 if ZTM_API is None:
     print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
@@ -105,6 +106,17 @@ def GetStopNameFromID(StopID):
     StopNames = FindStopDetails('zespol', StopID)
     return StopNames[0]['StopGroupName']
 
+def GetStopIDFromName(StopGroupName):
+        returnlist = []
+        global urlparams
+        urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
+        url = baseurl + "api/action/dbtimetable_get" 
+        r = GetApiData(url, urlparams)
+        for i in r['result']:
+            line = { 'StopGroupID': i['values'][0]['value'], 'StopGroupName': i['values'][1]['value'] }
+            returnlist.append(line)
+        return returnlist
+
 
 parser = argparse.ArgumentParser(description="ZTM (ZTM Warszawa) command-line interface to get timetables, routes, vehicle locations and more from api.um.warszawa.pl. You can find more information including examples of use on https://github.com/spmpl-pl/ztm in README file.", epilog="Written by Bartosz Chmielewski")
 parser.add_argument('action', choices=['getstop', 'getlines', 'getschedule', 'getroute', 'getgpstram', 'getgpsbus' ], help="Choose one of supported options.")
@@ -115,7 +127,7 @@ parser.add_argument('-l', nargs="?", metavar="Line", help="Line. For example: 25
 parser.add_argument('-b', nargs="?", metavar="BrigadeID", help="Brigade. For example: 01.",)
 args = parser.parse_args()
 
-urlparams = { 'apikey': ZTM_API }
+
 
 if args.action == 'getstop':
 
@@ -125,15 +137,15 @@ if args.action == 'getstop':
         print("Please provide either -n or -i parameters. You have provided both...")
         quit()
 
-    elif args.n:
-   
-        urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
-        url = baseurl + "api/action/dbtimetable_get" 
-        r = GetApiData(url, urlparams)
+    elif (args.n or args.i):
+        if (args.n):
+            StopGroupIDs = GetStopIDFromName(args.n)
+        else:
+            StopGroupIDs = [ { 'StopGroupID': args.i, 'StopGroupName': GetStopNameFromID(args.i) } ]
 
-        for i in r['result']:
-            print("==== Stop Group Name:", str(i['values'][1]['value']) + ". Stop Group ID:", i['values'][0]['value'])
-            ids = FindStopDetails('zespol', i['values'][0]['value'])
+        for i in StopGroupIDs:
+            print("==== Stop Group Name:", i['StopGroupName'] + ". Stop Group ID:", i['StopGroupID'])
+            ids = FindStopDetails('zespol', i['StopGroupID'])
             print("== Available Stop IDs:")
             print("")
             print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format("StopID", "Direction", "GPS Lat.", "GPS Long.", "Map Link" ))
@@ -141,18 +153,6 @@ if args.action == 'getstop':
                 googlelink = "https://maps.google.com/maps?q=loc:" + str(j['GPSLat']) + "," + str(j['GPSLon'])
                 print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format(j['StopID'], j['Direction'], j['GPSLat'], j['GPSLon'], googlelink ))
             print("")
-
-    elif args.i:
-
-        print("==== Stop Group Name:", GetStopNameFromID(args.i) + ". Stop Group ID:", args.i)
-        ids = FindStopDetails('zespol', args.i)
-        print("== Available Stop IDs:")
-        print("")
-        print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format("StopID", "Direction", "GPS Lat.", "GPS Long.", "Map Link" ))
-        for j in ids:
-            googlelink = "https://maps.google.com/maps?q=loc:" + str(j['GPSLat']) + "," + str(j['GPSLon'])
-            print("{0:<10} {1:<30} {2:<12} {3:<12} {4:<30}".format(j['StopID'], j['Direction'], j['GPSLat'], j['GPSLon'], googlelink ))
-        print("")
 
     else:
         print("Please provide a Stop Group Name with -n parameter or Stop Group ID with -i parameter.")
