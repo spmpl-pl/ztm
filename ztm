@@ -351,14 +351,14 @@ elif args.action == 'getroute':
             quit()
 
         print("")
-        print("There are", len(db_routes_line), "route variants for the line", str(args.l) + ". Printing all of them.")
+        print("==== There are", len(db_routes_line), "route variants for the line", str(args.l) + ". Printing all of them.")
         for i in db_routes_line:
 
             noofstops = len(db_routes_line[i])  
             print("")
             print("==== Route variant ID:", str(i) + ". Number of Stops:", noofstops)
             print("")
-            print("{0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format("No", "Stop Name", "Stop ID", "Stop Type", "Distance", "Street"))
+            print("  {0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format("No", "Stop Name", "Stop ID", "Stop Type", "Distance", "Street"))
             
             n=1
             for j in db_routes_line[i]:
@@ -370,7 +370,7 @@ elif args.action == 'getroute':
                 StopType=db_dictionary['result']['typy_przystankow'][db_routes_line[i][nstr]['typ']]
                 Distance=db_routes_line[i][nstr]['odleglosc']
                 StreetName=db_dictionary['result']['ulice'][db_routes_line[i][nstr]['ulica_id']]
-                print("{0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format(nstr, StopName, StopID, StopType, Distance, StreetName))
+                print("  {0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format(nstr, StopName, StopID, StopType, Distance, StreetName))
                 n += 1
 
             print("")
