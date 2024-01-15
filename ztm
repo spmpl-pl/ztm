@@ -210,7 +210,7 @@ elif args.action == 'getlines':
         for i in StopGroupIDs:
             
             if( args.s ):
-                ids = [ { 'StopID': args.s } ]
+                ids = [ { 'StopID': args.s, 'Direction': 'N/A' } ]
             else:
                 ids = FindStopDetails('zespol', i['StopGroupID'])
             
