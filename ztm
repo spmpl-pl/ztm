@@ -319,10 +319,10 @@ elif args.action == 'getschedule':
  
     else:
 
-        print("Please provide Stop Group ID with -i or Stop Group Name with -n and Stop ID with -s and Line with -l parameters. Example: ztm getschedule -i 5205 -s 01 -l 255")
+        print("Please provide Stop Group ID with -i or Stop Group Name with -n and Stop ID with -s and Line with -l parameters.")
         print("")
         print("Examples:")
-        print("  - ztm getschedule -i 5205 -s 01 -l 255")
+        print("  - ztm getschedule -i 5205 -s 01 -l 255 -f")
         print("  - ztm getschedule -n \"Jana Kazimierza\" -s 01 -l 255")
 
 elif args.action == 'getroute':
@@ -382,11 +382,13 @@ elif args.action == 'getgpstram' or args.action == 'getgpsbus':
     
     if ( args.l ):
 
-        urlparams |= {  'resource_id': 'f2e5503e927d-4ad3-9500-4ab9e55deb59', 'type': type, 'line': args.l }
-        if ( args.b ):  urlparams |= { 'brigade': args.b }
-   
+        urlparams_local = urlparams
+        urlparams_local |= {  'resource_id': 'f2e5503e927d-4ad3-9500-4ab9e55deb59', 'type': type, 'line': args.l }
         url = baseurl + "api/action/busestrams_get" 
-        r = GetApiData(url, urlparams)
+
+        if ( args.b ):  urlparams_local |= { 'brigade': args.b }
+   
+        r = GetApiData(url, urlparams_local)
 
         print("{0:<22} {1:<8} {2:<10} {3:<12} {4:<12} {5:<12} {6:<30}".format("Last update", "Line", "Brigade", "Vehicle ID", "GPS Lat.", "GPS Long.", "Map link"))
         for i in r['result']:
