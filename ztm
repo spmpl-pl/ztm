@@ -226,15 +226,21 @@ elif args.action == 'getlines':
                 print("  == Stop ID:", k['StopID'] + ". Direction:", k['Direction'])
 
                 if( len( r['result'] ) > 0 ):
-
+                    
+                    lineslist = ''
+                    firstline = True
                     for j in r['result']:
                         try:
                             line = j['values'][0]['value']
                         except TypeError:
                             print("No such Stop ID in the database")
                             quit()    
-
-                        print("  Line:", j['values'][0]['value'])
+                        if firstline:
+                            lineslist = line
+                            firstline = False
+                        else:
+                            lineslist += ', ' + line
+                    print("  Lines:", lineslist)
                     
                     
                 else:
