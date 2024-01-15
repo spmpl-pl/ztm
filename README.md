@@ -28,6 +28,7 @@ The ZTM is a commandline interface for downloading and presenting API data publi
 | `-l` | Line. For example: 255. |
 | `-b` | Brigade. For example: 01. |
 | `-f` | Display full schedule with Directions and Brigades. |
+| `-v` | Verbose mode. |
 
 ### Example commands:
 

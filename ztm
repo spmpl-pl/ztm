@@ -23,7 +23,7 @@ if ZTM_API is None:
     print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
     quit()
 
-def GetApiData(url, urlparams):
+def GetApiData(url, urlparams_local):
     ## Sending request to API and handling error codes if needed. 
     ## Input: URL and URL Parameters
     ## Output: JSON with a response
@@ -31,23 +31,25 @@ def GetApiData(url, urlparams):
     if verbose: print(" --> Trying to connect to:", url)
     
     try:
-        r = requests.get(url=url, params=urlparams)
+        r = requests.get(url=url, params=urlparams_local, timeout=(5, 15))
         
-    except requests.exceptions.RequestException as e: 
+    except Exception: 
     
-        iprint(" --> Connection to", url, "failed.")
+        print(" --> ERROR! Connection to", url, "failed. Timeout.")
+        print("     Please note, that the API is available only from Poland.")
         quit()
-        
+      
     else:
         if verbose: print(" --> Successfully connected to", url )
     
     if r.status_code == 200:   
         if verbose: print(" --> Connection successful. Got a response with a valid status code:", r.status_code)
-        if verbose: print("")
-        
+           
     else:
-        print(" --> Got a response with unexpected response code:", r.status_code, ". Please try again.")
+        print(" --> ERROR! Got a response with unexpected response code:", r.status_code, ". Please try again.")
         quit()
+    
+    if verbose: print("")
     
     return r.json()
 
@@ -118,10 +120,12 @@ def GetStopNameFromID(StopID):
 
 def GetStopIDFromName(StopGroupName):
         returnlist = []
-        global urlparams
-        urlparams |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
+        urlparams_local =  urlparams
+        urlparams_local |= { 'id': 'b27f4c17-5c50-4a5b-89dd-236b282bc499', 'name': args.n }
         url = baseurl + "api/action/dbtimetable_get" 
-        r = GetApiData(url, urlparams)
+
+        r = GetApiData(url, urlparams_local)
+        
         for i in r['result']:
             line = { 'StopGroupID': i['values'][0]['value'], 'StopGroupName': i['values'][1]['value'] }
             returnlist.append(line)
@@ -136,9 +140,11 @@ parser.add_argument('-s', nargs="?", metavar="StopID", help="Stop ID. For exampl
 parser.add_argument('-l', nargs="?", metavar="Line", help="Line. For example: 255.",)
 parser.add_argument('-b', nargs="?", metavar="BrigadeID", help="Brigade. For example: 01.",)
 parser.add_argument('-f', action='store_true', help="Display full schedule with Directions and Brigades.",)
+parser.add_argument('-v', action='store_true', default=False, help="Verbose mode.",)
 args = parser.parse_args()
 
 print("")
+verbose = args.v
 
 if args.action == 'getstop':
 
@@ -172,6 +178,7 @@ if args.action == 'getstop':
             print("")
 
     else:
+
         print("Please provide a Stop Group Name with -n parameter or Stop Group ID with -i parameter.")
         print("")
         print("Examples:")
@@ -236,6 +243,7 @@ elif args.action == 'getlines':
                 print("")
     
     else:
+
         print("Please provide Stop Group ID with -i or Stop Group Name with -n and optionally Stop ID with -s parameters.")
         print("")
         print("Examples:")
@@ -267,13 +275,17 @@ elif args.action == 'getschedule':
             quit()   
             
         for i in StopGroupIDs:    
-            urlparams |= { 'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238', 'busstopId': i['StopGroupID'], 'busstopNr': args.s, 'line': args.l }
+            
+            urlparams_local = urlparams
+            urlparams_local |= { 'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238', 'busstopId': i['StopGroupID'], 'busstopNr': args.s, 'line': args.l }
             url = baseurl + "api/action/dbtimetable_get" 
-            r = GetApiData(url, urlparams)
+            r = GetApiData(url, urlparams_local)
             print("==== Schedule for line:", args.l + ". Stop Group Name:", i['StopGroupName'] + ". Stop Group ID:", i['StopGroupID'])
+            print("")    
+
             if (len(r['result']) > 0 ):
                 if( args.f ):
-                    print("")
+
                     print("{0:<10} {1:<35} {2:<10}".format("Time", "Direction" , "Brigade"))
 
                     for j in r['result']:
@@ -284,11 +296,14 @@ elif args.action == 'getschedule':
                 else:
                 
                     timetable = ["" for x in range(30)]
+                    
                     for j in r['result']:
                         hour = j['values'][5]['value'][0:2]
                         minutes = j['values'][5]['value'][3:5]
                         timetable[int(hour)] += minutes + " "
+                    
                     hour = 0
+                    
                     for j in timetable:
                         if ( not j == "" ):
                             print(str(hour % 24).zfill(2) + ': ', j)
@@ -296,11 +311,14 @@ elif args.action == 'getschedule':
                     
                     print("")
                     print("Hint: You can print a schedule with Directions and Brigades with -f parameter...")
+
             else:
+
                 print("==== No results...")
                 print("")
  
     else:
+
         print("Please provide Stop Group ID with -i or Stop Group Name with -n and Stop ID with -s and Line with -l parameters. Example: ztm getschedule -i 5205 -s 01 -l 255")
         print("")
         print("Examples:")
@@ -315,8 +333,9 @@ elif args.action == 'getroute':
 
         db_routes = GetDatabase( homedir +"/.ztm/ztm_routes.json", baseurl + "api/action/public_transport_routes", urlparams)
         db_dictionary = GetDatabase( homedir +"/.ztm/ztm_dictionary.json", baseurl + "api/action/public_transport_dictionary", urlparams)
-        urlparams |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
-        db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams )
+        urlparams_local = urlparams
+        urlparams_local |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
+        db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_local )
 
         try:
             db_routes_line = db_routes['result'][args.l]
