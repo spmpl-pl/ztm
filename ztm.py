@@ -12,6 +12,7 @@ import os
 import argparse
 import requests
 import datetime
+import platform
 
 ZTM_API = str(os.getenv('ZTM_API'))
 baseurl = "https://api.um.warszawa.pl/"
@@ -19,11 +20,18 @@ homedir = str(os.getenv("HOME"))
 urlparams = { 'apikey': ZTM_API }
 verbose = False
 
-if ZTM_API is None:
+if platform.system() == 'Windows':
+    slash = '\\'
+else:
+    slash = '/'
+
+
+
+if ZTM_API == 'None':
     print("ZTM_API variable not set properly. Please set the variable with command: export ZTM_API=(apikey)")
     quit()
     
-if homedir is None:
+if homedir == 'None':
     print("HOME variable not set properly. Please set the variable with command: export HOME=(home directory)")
     quit()
 
@@ -62,9 +70,9 @@ def GetDatabase(filepath, url, urlparams):
     ## Input: DB file path, URL and URL parameters
     ## Output: Database as json object.  
 
-    if ( not os.path.exists( homedir + '/.ztm') ):
-        if verbose: print(' --> Creating directory:', homedir + '/.ztm' )
-        os.makedirs( homedir + '/.ztm' )
+    if ( not os.path.exists( homedir + slash + '.ztm') ):
+        if verbose: print(' --> Creating directory:', homedir + slash + '.ztm' )
+        os.makedirs( homedir + slash + '.ztm' )
 
     if( os.path.exists(filepath) and datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).date() == datetime.date.today()):
         if verbose: print(" --> The database file", filepath, "is up to date...")
@@ -143,7 +151,7 @@ parser.add_argument('-i', nargs="?", metavar="StopGroupID", help="Stop Group ID.
 parser.add_argument('-s', nargs="?", metavar="StopID", help="Stop ID. For example: 01.",)
 parser.add_argument('-l', nargs="?", metavar="Line", help="Line. For example: 255.",)
 parser.add_argument('-b', nargs="?", metavar="BrigadeID", help="Brigade. For example: 01.",)
-parser.add_argument('-f', action='store_true', help="Display full schedule with Directions and Brigades.",)
+parser.add_argument('-f', action='store_true', help="Display full schedule/Display all routes routes.",)
 parser.add_argument('-v', action='store_true', default=False, help="Verbose mode.",)
 args = parser.parse_args()
 
@@ -154,7 +162,7 @@ if args.action == 'getstop':
 
     urlparams_db = urlparams
     urlparams_db |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
-    db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_db )
+    db_busstops = GetDatabase(homedir + slash + ".ztm" + slash + "ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_db )
 
     if ( args.n and args.i ):
         print("Please provide either -n or -i parameters. You have provided both...")
@@ -193,7 +201,7 @@ elif args.action == 'getlines':
 
     urlparams_db = urlparams
     urlparams_db |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
-    db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_db )
+    db_busstops = GetDatabase(homedir + slash + ".ztm" + slash + "ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_db )
 
  
     if ( args.n and args.i ):
@@ -266,7 +274,7 @@ elif args.action == 'getschedule':
 
     urlparams_db = urlparams
     urlparams_db |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
-    db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_db )
+    db_busstops = GetDatabase(homedir + slash + ".ztm" + slash + "ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_db )
 
 
     if ( args.n and args.i ):
@@ -341,11 +349,11 @@ elif args.action == 'getroute':
 
         url = baseurl + "api/action/public_transport_routes" 
 
-        db_routes = GetDatabase( homedir +"/.ztm/ztm_routes.json", baseurl + "api/action/public_transport_routes", urlparams)
-        db_dictionary = GetDatabase( homedir +"/.ztm/ztm_dictionary.json", baseurl + "api/action/public_transport_dictionary", urlparams)
+        db_routes = GetDatabase( homedir + slash + ".ztm" + slash + "ztm_routes.json", baseurl + "api/action/public_transport_routes", urlparams)
+        db_dictionary = GetDatabase( homedir + slash + ".ztm" + slash + "ztm_dictionary.json", baseurl + "api/action/public_transport_dictionary", urlparams)
         urlparams_local = urlparams
         urlparams_local |= { 'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'}
-        db_busstops = GetDatabase(homedir +"/.ztm/ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_local )
+        db_busstops = GetDatabase(homedir + slash + ".ztm" + slash + "ztm_busstops.json", baseurl + "api/action/dbstore_get", urlparams_local )
 
         try:
             db_routes_line = db_routes['result'][args.l]
@@ -354,30 +362,37 @@ elif args.action == 'getroute':
             print("No such line in the database")
             quit()
 
-        print("")
-        print("==== There are", len(db_routes_line), "route variants for the line", str(args.l) + ". Printing all of them.")
-        for i in db_routes_line:
-
-            noofstops = len(db_routes_line[i])  
-            print("")
-            print("==== Route variant ID:", str(i) + ". Number of Stops:", noofstops)
-            print("")
-            print("  {0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format("No", "Stop Name", "Stop ID", "Stop Type", "Distance", "Street"))
+        #print("")
+        print("==== There are", len(db_routes_line), "route variants for the line", str(args.l) + ".")
+        if( args.f ):
+            print("==== Printing all variants...")
+        else:
+            print("==== Printing only primary routes. Use -f parameter to print all variants.")
             
-            n=1
-            for j in db_routes_line[i]:
-                nstr=str(n)
+        for i in db_routes_line:
+            
+            if (args.f or ( (str(i)[:2] == 'TP' or str(i)[:2] == 'TO' ) and len(str(i)) == 6)):
+              
+                noofstops = len(db_routes_line[i])  
+                print("")
+                print("==== Route variant ID:", str(i) + ". Number of Stops:", noofstops)
+                print("")
+                print("  {0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format("No", "Stop Name", "Stop ID", "Stop Type", "Distance", "Street"))
+                
+                n=1
+                for j in db_routes_line[i]:
+                    nstr=str(n)
 
-                StopNameID = db_routes_line[i][nstr]['nr_zespolu']
-                StopName = GetStopNameFromID(StopNameID)
-                StopID=db_routes_line[i][nstr]['nr_przystanku']
-                StopType=db_dictionary['result']['typy_przystankow'][db_routes_line[i][nstr]['typ']]
-                Distance=db_routes_line[i][nstr]['odleglosc']
-                StreetName=db_dictionary['result']['ulice'][db_routes_line[i][nstr]['ulica_id']]
-                print("  {0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format(nstr, StopName, StopID, StopType, Distance, StreetName))
-                n += 1
+                    StopNameID = db_routes_line[i][nstr]['nr_zespolu']
+                    StopName = GetStopNameFromID(StopNameID)
+                    StopID=db_routes_line[i][nstr]['nr_przystanku']
+                    StopType=db_dictionary['result']['typy_przystankow'][db_routes_line[i][nstr]['typ']]
+                    Distance=db_routes_line[i][nstr]['odleglosc']
+                    StreetName=db_dictionary['result']['ulice'][db_routes_line[i][nstr]['ulica_id']]
+                    print("  {0:<5} {1:<30} {2:<10} {3:<20} {4:<15} {5:<15}".format(nstr, StopName, StopID, StopType, Distance, StreetName))
+                    n += 1
 
-            print("")
+                print("")
     else:
         print("Please provide Line with -l parameter. Example: ztm getroute -l 255")
         print("")
