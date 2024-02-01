@@ -371,7 +371,7 @@ elif args.action == 'getroute':
             
         for i in db_routes_line:
             
-            if (args.f or ( (str(i)[:2] == 'TP' or str(i)[:2] == 'TO' ) and len(str(i)) == 6)):
+            if (args.f or ( str(i)[:2] == 'TP' or str(i)[:2] == 'TO' )):
               
                 noofstops = len(db_routes_line[i])  
                 print("")
