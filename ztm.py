@@ -367,7 +367,7 @@ elif args.action == 'getroute':
         if( args.f ):
             print("==== Printing all variants...")
         else:
-            print("==== Printing only primary routes. Use -f parameter to print all variants.")
+            print("==== Printing only primary routes and detours. Use -f parameter to print all variants.")
             
         for i in db_routes_line:
             
